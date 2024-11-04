@@ -2,14 +2,13 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 mongoose.connect(
-  "mongodb+srv://yadavrajat1210:SvxcRQbt7AsgVxW9@cluster0.7n7wv.mongodb.net/todo-app"
+  "mongodb+srv://yadavrajat1210:SvxcRQbt7AsgVxW9@cluster0.7n7wv.mongodb.net/todo-app2"
 );
 const { UserModel, TodoModel } = require("./db");
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = "1223";
 const app = express();
 
-//middlewares
 app.use(cors());
 app.use(express.json());
 
@@ -58,7 +57,7 @@ app.post("/signin", async function (req, res) {
   }
 });
 
-//routes
+//middleware
 function auth(req, res, next) {
   const token = req.headers.token;
 

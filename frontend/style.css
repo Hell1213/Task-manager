@@ -22,3 +22,12 @@ button {
 #todo-list li {
   margin: 5px 0;
 }
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin-bottom: 7px;
+  font-size: 15px;
+}

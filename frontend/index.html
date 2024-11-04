@@ -17,14 +17,12 @@
     <div id="signup-page">
       <h2>Sign Up</h2>
       <form id="signup-form">
-        <input
-          type="text"
-          id="signup-username"
-          placeholder="username"
-          required
-        />
-        <input type="email" id="signup-email" placeholder="email" required />
-        <input type="password" id="signup-password" placeholder="password" />
+        <label for="signup-username">Username:</label>
+        <input type="text" id="signup-username" required />
+        <label for="signup-email">Email:</label>
+        <input type="email" id="signup-email" required />
+        <label for="signup-password">Password:</label>
+        <input type="password" id="signup-password" />
         <button type="submit">Submit</button>
       </form>
       <p>already have an account ?<a href="#" id="show-signin">Signin</a></p>
@@ -65,7 +63,7 @@
     </div>
 
     <script>
-      // Show Signin Page and Hide Signup Page
+      // Show Signin Page and Hide Signup Page //signup,signin  toggle ....
       document
         .getElementById("show-signin")
         .addEventListener("click", function (e) {
