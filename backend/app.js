@@ -1,59 +1,79 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-mongoose.connect(
-  "mongodb+srv://yadavrajat1210:SvxcRQbt7AsgVxW9@cluster0.7n7wv.mongodb.net/todo-app2"
-);
+const { connectToDatabase } = require("./db");
+
 const { UserModel, TodoModel } = require("./db");
+require("dotenv").config();
 const jwt = require("jsonwebtoken");
-const JWT_SECRET = "1223";
+const JWT_SECRET = process.env.JWT_SECRET || "jarvis0000";
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-const users = []; // global user variable
+//// establish a connection to mongo DB database
+connectToDatabase().then(() => {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+});
+
+//user.js code start from here
+//signup ,signin route ...
 
 app.post("/signup", async function (req, res) {
   const username = req.body.username;
   const password = req.body.password;
   const email = req.body.email;
 
-  await UserModel.create({
-    email: email,
-    username: username,
-    password: password,
-  });
-  res.json({
-    message: "you have signed up",
-  });
+  try {
+    const existingUser = await UserModel.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already in use " });
+    }
+
+    await UserModel.create({
+      email: email,
+      username: username,
+      password: password,
+    });
+    res.json({
+      message: "you have signed up",
+    });
+  } catch (error) {
+    res.status(500).json({ message: "error signing up", error });
+  }
 });
 
 app.post("/signin", async function (req, res) {
   const email = req.body.email;
   const password = req.body.password;
 
-  const user = await UserModel.findOne({
-    email: email,
-    password: password,
-  });
-
-  if (user) {
-    const token = jwt.sign(
-      {
-        // create jwt token
-        id: user._id,
-      },
-      JWT_SECRET
-    );
-
-    res.json({
-      token: token,
+  try {
+    const user = await UserModel.findOne({
+      email: email,
+      password: password,
     });
-  } else {
-    res.status(403).json({
-      message: "incorrect creds",
-    });
+
+    if (user) {
+      const token = jwt.sign(
+        {
+          // create jwt token
+          id: user._id,
+        },
+        JWT_SECRET
+      );
+
+      res.json({
+        token: token,
+      });
+    } else {
+      res.status(403).json({
+        message: "incorrect creds",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Error signing in", error });
   }
 });
 
@@ -61,22 +81,16 @@ app.post("/signin", async function (req, res) {
 function auth(req, res, next) {
   const token = req.headers.token;
 
-  const decodedData = jwt.verify(token, JWT_SECRET);
-
-  if (decodedData) {
-    req.userId = decodedData.userId;
+  try {
+    const decodedData = jwt.verify(token, JWT_SECRET);
+    req.userId = decodedData.id;
     next();
-  } else {
-    res.status(403).json({
-      message: "incorrect creds",
-    });
+  } catch (error) {
+    res.status(403).json({ message: "Invalid or expired token" });
   }
 }
 
-module.exports = {
-  auth,
-  JWT_SECRET,
-};
+// todo.js code from here
 
 app.post("/todo", auth, async function (req, res) {
   try {
@@ -97,6 +111,7 @@ app.post("/todo", auth, async function (req, res) {
   }
 });
 
+//getting all todos
 app.get("/todos", auth, async function (req, res) {
   try {
     const todos = await TodoModel.find({ userId: req.userId });
@@ -105,6 +120,5 @@ app.get("/todos", auth, async function (req, res) {
     res.status(500).json({ message: "error fetching todos", error });
   }
 });
-app.listen(3000, () => {
-  console.log("server is running on port 3000");
-});
+
+module.exports = { auth, JWT_SECRET };
